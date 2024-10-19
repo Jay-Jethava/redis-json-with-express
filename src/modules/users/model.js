@@ -1,9 +1,10 @@
 const { DataTypes } = require("sequelize");
 const CryptoJS = require("crypto-js");
+const createHttpError = require("http-errors");
 const sequelize = require("../../utils/db"); // Import the database connection
 const { validatePayload } = require("../../utils");
 const userJoiSchema = require("./joiSchema");
-const createHttpError = require("http-errors");
+const userRedisService = require("./redisService");
 
 const User = sequelize.define(
   "user",
@@ -61,6 +62,15 @@ const User = sequelize.define(
           });
           validatePayload(payload, userJoiSchema.update);
         }
+      },
+      afterSave: (instance, options) => {
+        //  -> set date in redis
+        userRedisService.setUsersToRedis([instance.id]);
+      },
+      afterDestroy: (instance, options) => {
+        console.log("afterDestroy", instance, options);
+        //  -> set date in redis
+        userRedisService.removeUsersFromRedis([instance.id]);
       },
     },
   }

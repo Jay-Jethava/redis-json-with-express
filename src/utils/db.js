@@ -1,3 +1,4 @@
+require("dotenv").config();
 const Sequelize = require("sequelize");
 const dbConfig = require("../configs/db-config.js");
 console.log(dbConfig[process.env.NODE_ENV]);
@@ -5,7 +6,7 @@ console.log(dbConfig[process.env.NODE_ENV]);
 const sequelize = new Sequelize(dbConfig[process.env.NODE_ENV]);
 
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then(async (result) => {
     console.log(`✔ Database connected successfully.`);
   })
