@@ -1,4 +1,9 @@
+const createError = require("http-errors");
 const User = require("./model");
+
+exports.findById = (id) => User.findByPk(id);
+
+exports.findOne = (options) => User.findOne(options);
 
 exports.getUsers = (query) => {
   //   -> add pagination
@@ -29,5 +34,7 @@ exports.updateUser = async (data, filter) => {
   const result = await User.update(data, filter);
   return result;
 };
+
+exports.deleteUser = async (options) => User.destroy(options);
 
 // < define other services like update, delete, etc >

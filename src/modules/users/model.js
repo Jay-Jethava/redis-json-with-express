@@ -3,6 +3,7 @@ const CryptoJS = require("crypto-js");
 const sequelize = require("../../utils/db"); // Import the database connection
 const { validatePayload } = require("../../utils");
 const userJoiSchema = require("./joiSchema");
+const createHttpError = require("http-errors");
 
 const User = sequelize.define(
   "user",
@@ -29,6 +30,11 @@ const User = sequelize.define(
       type: DataTypes.ENUM(["Male", "Female", "Other"]),
       allowNull: false,
     },
+    role: {
+      type: DataTypes.STRING,
+      defaultValue: "user",
+      comment: "role can be - user, admin, writer",
+    },
     createdAt: {
       type: DataTypes.DATE,
     },
@@ -42,7 +48,6 @@ const User = sequelize.define(
     hooks: {
       // Hook to hash the password before creating, save the user
       beforeSave: (instance, options) => {
-        console.log(instance, options);
         if (instance._changed.has("password"))
           instance.password = User.hashPassword(instance.password);
 
@@ -66,11 +71,21 @@ User.hashPassword = function (password) {
   return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
 };
 
-User.verifyPassword = function (inputPassword, hashedPassword) {
+// User.verifyPassword = function (inputPassword, hashedPassword) {
+//   const hashedInputPassword = CryptoJS.SHA256(inputPassword).toString(
+//     CryptoJS.enc.Hex
+//   );
+//   return hashedInputPassword === hashedPassword;
+// };
+User.prototype.verifyPassword = function (inputPassword) {
+  if (!this.password)
+    throw createHttpError(500, "password is not selected on the user instance");
+
   const hashedInputPassword = CryptoJS.SHA256(inputPassword).toString(
     CryptoJS.enc.Hex
   );
-  return hashedInputPassword === hashedPassword;
+
+  return hashedInputPassword === this.password;
 };
 
 User.prototype.getEmail = function () {

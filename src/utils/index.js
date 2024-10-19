@@ -1,3 +1,5 @@
+const createHttpError = require("http-errors");
+
 exports.validatePayload = (payload, schema) => {
   const options = {
     errors: {
@@ -7,6 +9,5 @@ exports.validatePayload = (payload, schema) => {
     },
   };
   const result = schema.validate(payload, options);
-  if (result.error) console.error(result.error);
-  //   return next(createError(422, result.error.details[0].message));
+  if (result.error) throw createHttpError(422, result.error.details[0].message);
 };

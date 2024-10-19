@@ -7,6 +7,7 @@ module.exports = {
     email: Joi.string().required(),
     password: Joi.string().required(),
     gender: Joi.string().valid("Male", "Female", "Other"),
+    role: Joi.string(),
     createdAt: Joi.date(),
     updatedAt: Joi.date(),
     deletedAt: Joi.date().allow(null),
