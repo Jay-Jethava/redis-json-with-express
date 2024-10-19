@@ -1,7 +1,6 @@
 const { Op } = require("sequelize");
 const redis = require("../../utils/Redis");
 const { deleteKeysFromRedis } = require("../../utils/Redis");
-const User = require("../users/model");
 
 class BlogRedisService {
   static index = "idx:blogs";
@@ -67,12 +66,13 @@ class BlogRedisService {
     };
   }
 
-  async setBlogsToRedis(ids = undefined) {
+  async setBlogsToRedis(ids = undefined, filter = {}) {
     const Blog = require("../blogs/model");
+    const User = require("../users/model");
 
     let offset = 0;
     let batchCount = 0;
-    const BATCH_SIZE = 1000;
+    const BATCH_SIZE = ids?.length || 1000;
 
     while (true) {
       let blogs = await Blog.findAll({
@@ -82,6 +82,7 @@ class BlogRedisService {
               [Op.in]: ids,
             },
           }),
+          ...filter,
         },
         limit: BATCH_SIZE,
         offset: offset,
@@ -122,6 +123,12 @@ class BlogRedisService {
     const keys = ids.map((id) => `${BlogRedisService.prefix}${id}`);
 
     redis.deleteKeysFromRedis(keys);
+  }
+
+  async updateBlogsOnUserUpdate(UserId) {
+    this.setBlogsToRedis(undefined, {
+      UserId,
+    });
   }
 }
 

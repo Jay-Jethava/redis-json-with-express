@@ -5,6 +5,7 @@ const sequelize = require("../../utils/db"); // Import the database connection
 const { validatePayload } = require("../../utils");
 const userJoiSchema = require("./joiSchema");
 const userRedisService = require("./redisService");
+const blogRedisService = require("../blogs/redisService");
 
 const User = sequelize.define(
   "user",
@@ -66,9 +67,12 @@ const User = sequelize.define(
       afterSave: (instance, options) => {
         //  -> set date in redis
         userRedisService.setUsersToRedis([instance.id]);
+
+        if (!instance._options.isNewRecord) {
+          blogRedisService.updateBlogsOnUserUpdate(instance.id);
+        }
       },
       afterDestroy: (instance, options) => {
-        console.log("afterDestroy", instance, options);
         //  -> set date in redis
         userRedisService.removeUsersFromRedis([instance.id]);
       },
