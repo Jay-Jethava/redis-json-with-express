@@ -3,6 +3,7 @@ const sequelize = require("../../utils/db"); // Import the database connection
 const { validatePayload } = require("../../utils");
 const blogJoiSchema = require("./joiSchema");
 const User = require("../users/model");
+const blogRedisService = require("./redisService");
 
 const Blog = sequelize.define(
   "blog",
@@ -41,6 +42,15 @@ const Blog = sequelize.define(
           });
           validatePayload(payload, blogJoiSchema.update);
         }
+      },
+      afterSave: (instance, options) => {
+        //  -> set date in redis
+        blogRedisService.setBlogsToRedis([instance.id]);
+      },
+      afterDestroy: (instance, options) => {
+        console.log("afterDestroy", instance, options);
+        //  -> set date in redis
+        blogRedisService.removeBlogsFromRedis([instance.id]);
       },
     },
   }

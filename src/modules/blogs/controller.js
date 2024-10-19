@@ -58,6 +58,7 @@ exports.deleteById = async (req, res, next) => {
       where: {
         id: req.params.id,
       },
+      individualHooks: true,
     });
 
     res.status(200).json({
