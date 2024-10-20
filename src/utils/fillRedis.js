@@ -1,7 +1,7 @@
-const userRedisService = require("../modules/users/redisService");
-
 const fillDataToRedis = () => {
-  userRedisService.setAllUsersToRedis();
+  const blogRedisService = require("../modules/blogs/redisService");
+
+  blogRedisService.setBlogsToRedis();
 };
 
 fillDataToRedis();

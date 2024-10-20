@@ -1,23 +1,59 @@
+const { Op } = require("sequelize");
 const User = require("../users/model");
 const Blog = require("./model");
-const userRedisService = require("../users/redisService");
+const blogRedisService = require("../blogs/redisService");
 
-exports.getBlogs = (query) => {
+exports.getBlogs = async (query) => {
   //   -> add pagination
-  const { page = 1, limit = 10 } = query;
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt",
+    sortOrder = "DESC",
+    search,
+  } = query;
+
+  let data;
   const offset = (page - 1) * limit;
 
-  return Blog.findAll({
-    limit,
+  data = await blogRedisService.getAllBlogs({
     offset,
-    order: [["createdAt", "DESC"]],
-    include: [
-      {
-        model: User,
-        attributes: ["id", "name", "email"],
-      },
-    ],
+    limit,
+    sortBy,
+    sortOrder,
+    search,
   });
+
+  // data = null;
+
+  if (!data)
+    data = await Blog.findAll({
+      limit,
+      offset,
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: User,
+          attributes: ["id", "name", "email"],
+        },
+      ],
+      where: {
+        [Op.or]: [
+          {
+            title: {
+              [Op.like]: `%${search}%`,
+            },
+          },
+          {
+            "$user.name$": {
+              [Op.like]: `%${search}%`,
+            },
+          },
+        ],
+      },
+    });
+
+  return data;
 };
 
 exports.createBlog = (blogData) => {

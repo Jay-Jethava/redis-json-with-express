@@ -11,13 +11,17 @@ class BlogRedisService {
       AS: "id",
       SORTABLE: true,
     },
-    "$.title": {
+    "$.titleText": {
       type: "TEXT",
-      AS: "title",
+      AS: "titleText",
     },
-    "$.writer": {
+    "$.writerTag": {
+      type: "TAG",
+      AS: "writerTag",
+    },
+    "$.writerText": {
       type: "TEXT",
-      AS: "writer",
+      AS: "writerText",
     },
     "$.body": {
       type: "TEXT",
@@ -27,6 +31,10 @@ class BlogRedisService {
       type: "NUMERIC",
       AS: "UserId",
       SORTABLE: true,
+    },
+    "$.createdAt": {
+      type: "TEXT",
+      AS: "createdAt",
     },
   };
 
@@ -58,10 +66,12 @@ class BlogRedisService {
   formateData(instance) {
     return {
       id: instance.id,
-      title: instance.title,
       body: instance.body,
       UserId: instance.UserId,
-      writer: instance.user?.name,
+      titleText: instance.title,
+      writerTag: instance.user?.name,
+      writerText: instance.user?.name,
+      createdAt: instance.createdAt,
       fullData: instance.toJSON(),
     };
   }
@@ -129,6 +139,20 @@ class BlogRedisService {
     this.setBlogsToRedis(undefined, {
       UserId,
     });
+  }
+
+  async getAllBlogs({ offset, limit, sortBy, sortOrder, search }) {
+    let query = search
+      ? `(@titleText:${search}) | (@writerText:${search})`
+      : "*";
+
+    const data = await redis.client.ft.search(BlogRedisService.index, query, {
+      LIMIT: { from: offset, size: limit },
+      SORTBY: { BY: sortBy, DIRECTION: sortOrder },
+    });
+
+    if (!data?.total) return null;
+    return data.documents.map((doc) => doc.value.fullData);
   }
 }
 
