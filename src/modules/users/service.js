@@ -1,5 +1,4 @@
 const User = require("./model");
-const userRedisService = require("./redisService");
 
 exports.findById = (id) => User.findByPk(id);
 

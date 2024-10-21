@@ -24,8 +24,6 @@ exports.getBlogs = async (query) => {
     search,
   });
 
-  // data = null;
-
   if (!data)
     data = await Blog.findAll({
       limit,

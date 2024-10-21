@@ -1,6 +1,6 @@
-const fillDataToRedis = () => {
-  const blogRedisService = require("../modules/blogs/redisService");
+const blogRedisService = require("../modules/blogs/redisService");
 
+const fillDataToRedis = () => {
   blogRedisService.setBlogsToRedis();
 };
 

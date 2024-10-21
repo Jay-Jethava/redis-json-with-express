@@ -1,6 +1,5 @@
 const { Op } = require("sequelize");
-const redis = require("../../utils/Redis");
-const { deleteKeysFromRedis } = require("../../utils/Redis");
+const redisClient = require("../../utils/redisClient");
 
 class UserRedisService {
   static index = "idx:users";
@@ -26,7 +25,7 @@ class UserRedisService {
   };
 
   constructor() {
-    redis.client.ft
+    redisClient.ft
       .create(`${UserRedisService.index}`, UserRedisService.schema, {
         ON: "JSON",
         PREFIX: UserRedisService.prefix,
@@ -86,7 +85,7 @@ class UserRedisService {
       await Promise.all(
         users.map((user) => {
           let data = this.formateData(user);
-          return redis.client.json
+          returnredisClient.json
             .set(`${UserRedisService.prefix}${user.id}`, "$", data)
             .catch((err) =>
               console.error(`Error while setting user ${user.id} in Redis`, err)
@@ -106,7 +105,7 @@ class UserRedisService {
     if (!ids) return;
     const keys = ids.map((id) => `${UserRedisService.prefix}${id}`);
 
-    redis.deleteKeysFromRedis(keys);
+    redisClient.del(keys);
   }
 }
 

@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
-const redis = require("../../utils/Redis");
-const { deleteKeysFromRedis } = require("../../utils/Redis");
+const redis = require("../../utils/redisClient");
+const redisClient = require("../../utils/redisClient");
 
 class BlogRedisService {
   static index = "idx:blogs";
@@ -39,7 +39,7 @@ class BlogRedisService {
   };
 
   constructor() {
-    redis.client.ft
+    redisClient.ft
       .create(`${BlogRedisService.index}`, BlogRedisService.schema, {
         ON: "JSON",
         PREFIX: BlogRedisService.prefix,
@@ -112,7 +112,7 @@ class BlogRedisService {
       await Promise.all(
         blogs.map((blog) => {
           let data = this.formateData(blog);
-          return redis.client.json
+          return redisClient.json
             .set(`${BlogRedisService.prefix}${blog.id}`, "$", data)
             .catch((err) =>
               console.error(`Error while setting blog ${blog.id} in Redis`, err)
@@ -132,7 +132,7 @@ class BlogRedisService {
     if (!ids) return;
     const keys = ids.map((id) => `${BlogRedisService.prefix}${id}`);
 
-    redis.deleteKeysFromRedis(keys);
+    redisClient.del(keys);
   }
 
   async updateBlogsOnUserUpdate(UserId) {
@@ -143,10 +143,10 @@ class BlogRedisService {
 
   async getAllBlogs({ offset, limit, sortBy, sortOrder, search }) {
     let query = search
-      ? `(@titleText:${search}) | (@writerText:${search})`
+      ? `(@titleText:*${search}*) | (@writerText:*${search}*)`
       : "*";
 
-    const data = await redis.client.ft.search(BlogRedisService.index, query, {
+    const data = awaitredisClient.ft.search(BlogRedisService.index, query, {
       LIMIT: { from: offset, size: limit },
       SORTBY: { BY: sortBy, DIRECTION: sortOrder },
     });
