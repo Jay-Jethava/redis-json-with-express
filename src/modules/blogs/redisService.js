@@ -11,17 +11,13 @@ class BlogRedisService {
       AS: "id",
       SORTABLE: true,
     },
-    "$.titleText": {
+    "$.title": {
       type: "TEXT",
-      AS: "titleText",
+      AS: "title",
     },
-    "$.writerTag": {
-      type: "TAG",
-      AS: "writerTag",
-    },
-    "$.writerText": {
+    "$.writer": {
       type: "TEXT",
-      AS: "writerText",
+      AS: "writer",
     },
     "$.body": {
       type: "TEXT",
@@ -68,9 +64,8 @@ class BlogRedisService {
       id: instance.id,
       body: instance.body,
       UserId: instance.UserId,
-      titleText: instance.title,
-      writerTag: instance.user?.name,
-      writerText: instance.user?.name,
+      title: instance.title,
+      writer: instance.user?.name,
       createdAt: instance.createdAt,
       fullData: instance.toJSON(),
     };
@@ -142,9 +137,7 @@ class BlogRedisService {
   }
 
   async getAllBlogs({ offset, limit, sortBy, sortOrder, search }) {
-    let query = search
-      ? `(@titleText:*${search}*) | (@writerText:*${search}*)`
-      : "*";
+    let query = search ? `(@title:*${search}*) | (@writer:*${search}*)` : "*";
 
     const data = awaitredisClient.ft.search(BlogRedisService.index, query, {
       LIMIT: { from: offset, size: limit },
